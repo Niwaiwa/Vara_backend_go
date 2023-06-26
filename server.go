@@ -7,14 +7,61 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 func main() {
 	e := echo.New()
+	e.Debug = true
 	e.Logger.SetLevel(log.INFO)
+
+	config := zap.NewProductionConfig()
+	config.EncoderConfig.TimeKey = "time"
+	config.EncoderConfig.EncodeTime = zapcore.RFC3339NanoTimeEncoder
+	logger, err := config.Build()
+	if err != nil {
+		panic(err)
+	}
+
+	e.Use(middleware.RequestIDWithConfig(middleware.RequestIDConfig{
+		Generator: func() string {
+			return uuid.NewString()
+		},
+	}))
+
+	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogURI:       true,
+		LogStatus:    true,
+		LogError:     true,
+		LogRequestID: true,
+		HandleError:  true, // forwards error to the global error handler, so it can decide appropriate status code
+		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+			if v.Error == nil {
+				logger.Info("request",
+					zap.String("request_id", v.RequestID),
+					zap.String("URI", v.URI),
+					zap.Int("status", v.Status),
+				)
+			} else {
+				logger.Error("request error",
+					zap.String("request_id", v.RequestID),
+					zap.String("URI", v.URI),
+					zap.Int("status", v.Status),
+					zap.Error(v.Error),
+				)
+			}
+			return nil
+		},
+	}))
+	e.Use(middleware.Recover())
+
 	e.GET("/", func(c echo.Context) error {
+		logger.Info("hello", zap.String("request_id", c.Response().Header().Get(echo.HeaderXRequestID)))
 		return c.JSON(http.StatusOK, "OK")
 	})
 
