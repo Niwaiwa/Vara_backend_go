@@ -24,6 +24,7 @@ func main() {
 	config.EncoderConfig.TimeKey = "time"
 	config.EncoderConfig.EncodeTime = zapcore.RFC3339NanoTimeEncoder
 	logger, err := config.Build()
+	defer logger.Sync()
 	if err != nil {
 		panic(err)
 	}
@@ -33,24 +34,29 @@ func main() {
 			return uuid.NewString()
 		},
 	}))
-
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogURI:       true,
 		LogStatus:    true,
 		LogError:     true,
 		LogRequestID: true,
+		LogLatency:   true,
+		LogMethod:    true,
 		HandleError:  true, // forwards error to the global error handler, so it can decide appropriate status code
 		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
 			if v.Error == nil {
 				logger.Info("request",
 					zap.String("request_id", v.RequestID),
+					zap.String("method", v.Method),
 					zap.String("URI", v.URI),
+					zap.Int64("latency", v.Latency.Nanoseconds()),
 					zap.Int("status", v.Status),
 				)
 			} else {
 				logger.Error("request error",
 					zap.String("request_id", v.RequestID),
+					zap.String("method", v.Method),
 					zap.String("URI", v.URI),
+					zap.Int64("latency", v.Latency.Nanoseconds()),
 					zap.Int("status", v.Status),
 					zap.Error(v.Error),
 				)
@@ -61,7 +67,6 @@ func main() {
 	e.Use(middleware.Recover())
 
 	e.GET("/", func(c echo.Context) error {
-		logger.Info("hello", zap.String("request_id", c.Response().Header().Get(echo.HeaderXRequestID)))
 		return c.JSON(http.StatusOK, "OK")
 	})
 
