@@ -6,6 +6,7 @@
 * [x] Graceful shutdown
 * [x] Recover
 * [x] Logger
+* [x] Config
+* [ ] Database
 * [ ] User
 * [ ] JWT
-* [ ] Database
