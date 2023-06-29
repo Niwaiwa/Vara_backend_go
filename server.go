@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"myapp/configs"
 	"net/http"
 	"os"
 	"os/signal"
@@ -16,6 +17,8 @@ import (
 )
 
 func main() {
+	configs.InitEnvConfigs()
+
 	e := echo.New()
 	e.Debug = true
 	e.Logger.SetLevel(log.INFO)
