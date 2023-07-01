@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"myapp/configs"
+	"myapp/db"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,62 +14,32 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 func main() {
 	config := configs.InitConfigs()
 	log.Info(config.Debug)
+	// log.Info(config)
 
 	e := echo.New()
 	e.Debug = true
-	e.Logger.SetLevel(log.INFO)
+	// e.Logger.SetLevel(log.INFO)
 
-	zapConfig := zap.NewProductionConfig()
-	zapConfig.EncoderConfig.TimeKey = "time"
-	zapConfig.EncoderConfig.EncodeTime = zapcore.RFC3339NanoTimeEncoder
-	logger, err := zapConfig.Build()
+	// use custom logger to inject logger into context
+	logger := configs.InitLogger()
 	defer logger.Sync()
-	if err != nil {
-		panic(err)
-	}
+
+	// connect to database and get database version to inject into context
+	db, dbVersion := db.DbConnect(context.Background(), logger, config)
+	defer db.Close()
+	logger.Info(fmt.Sprintf("Connected to database. Version: %s", dbVersion))
 
 	e.Use(middleware.RequestIDWithConfig(middleware.RequestIDConfig{
 		Generator: func() string {
 			return uuid.NewString()
 		},
 	}))
-	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
-		LogURI:       true,
-		LogStatus:    true,
-		LogError:     true,
-		LogRequestID: true,
-		LogLatency:   true,
-		LogMethod:    true,
-		HandleError:  true, // forwards error to the global error handler, so it can decide appropriate status code
-		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
-			if v.Error == nil {
-				logger.Info("request",
-					zap.String("request_id", v.RequestID),
-					zap.String("method", v.Method),
-					zap.String("URI", v.URI),
-					zap.Int64("latency", v.Latency.Nanoseconds()),
-					zap.Int("status", v.Status),
-				)
-			} else {
-				logger.Error("request error",
-					zap.String("request_id", v.RequestID),
-					zap.String("method", v.Method),
-					zap.String("URI", v.URI),
-					zap.Int64("latency", v.Latency.Nanoseconds()),
-					zap.Int("status", v.Status),
-					zap.Error(v.Error),
-				)
-			}
-			return nil
-		},
-	}))
+	e.Use(configs.RequestLoggerMiddleware(logger))
 	e.Use(middleware.Recover())
 
 	e.GET("/", func(c echo.Context) error {

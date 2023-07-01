@@ -6,22 +6,22 @@ import (
 	"github.com/spf13/viper"
 )
 
+// struct to map env values
+type Config struct {
+	Debug                bool   `mapstructure:"DEBUG"`
+	ServerPort           string `mapstructure:"SERVER_PORT"`
+	SecretKey            string `mapstructure:"SECRET_KEY"`
+	DBURL                string `mapstructure:"DB_URL"`
+	DBConnMaxLifetimeMs  int    `mapstructure:"DB_CONN_MAX_LIFETIME_MS"`
+	DBMaxOpenConns       int    `mapstructure:"DB_MAX_OPEN_CONNS"`
+	DBMaxIdleConns       int    `mapstructure:"DB_MAX_IDLE_CONNS"`
+	DBDnsScanIntervalSec int    `mapstructure:"DB_DNS_SCAN_INTERVAL_SEC"`
+}
+
 // We will call this in main.go to load the env variables and initialize the config variable
 func InitConfigs() *Config {
 	config := loadEnvVariables()
 	return config
-}
-
-// struct to map env values
-type Config struct {
-	Debug      bool   `mapstructure:"DEBUG"`
-	ServerPort string `mapstructure:"SERVER_PORT"`
-	SecretKey  string `mapstructure:"SECRET_KEY"`
-	DBHost     string `mapstructure:"DB_HOST"`
-	DBPort     string `mapstructure:"DB_PORT"`
-	DBUser     string `mapstructure:"DB_USERNAME"`
-	DBPassword string `mapstructure:"DB_PASSWORD"`
-	DBName     string `mapstructure:"DB_NAME"`
 }
 
 // Call to load the variables from env
