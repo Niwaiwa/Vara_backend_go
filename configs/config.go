@@ -6,16 +6,14 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Initilize this variable to access the env values
-var EnvConfigs *envConfigs
-
-// We will call this in main.go to load the env variables
-func InitEnvConfigs() {
-	EnvConfigs = loadEnvVariables()
+// We will call this in main.go to load the env variables and initialize the config variable
+func InitConfigs() *Config {
+	config := loadEnvVariables()
+	return config
 }
 
 // struct to map env values
-type envConfigs struct {
+type Config struct {
 	Debug      bool   `mapstructure:"DEBUG"`
 	ServerPort string `mapstructure:"SERVER_PORT"`
 	SecretKey  string `mapstructure:"SECRET_KEY"`
@@ -27,7 +25,7 @@ type envConfigs struct {
 }
 
 // Call to load the variables from env
-func loadEnvVariables() (config *envConfigs) {
+func loadEnvVariables() (config *Config) {
 	// Tell viper the path/location of your env file. If it is root just add "."
 	viper.AddConfigPath(".")
 
@@ -46,5 +44,5 @@ func loadEnvVariables() (config *envConfigs) {
 	if err := viper.Unmarshal(&config); err != nil {
 		log.Fatal(err)
 	}
-	return
+	return config
 }

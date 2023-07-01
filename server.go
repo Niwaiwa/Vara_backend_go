@@ -17,16 +17,17 @@ import (
 )
 
 func main() {
-	configs.InitEnvConfigs()
+	config := configs.InitConfigs()
+	log.Info(config.Debug)
 
 	e := echo.New()
 	e.Debug = true
 	e.Logger.SetLevel(log.INFO)
 
-	config := zap.NewProductionConfig()
-	config.EncoderConfig.TimeKey = "time"
-	config.EncoderConfig.EncodeTime = zapcore.RFC3339NanoTimeEncoder
-	logger, err := config.Build()
+	zapConfig := zap.NewProductionConfig()
+	zapConfig.EncoderConfig.TimeKey = "time"
+	zapConfig.EncoderConfig.EncodeTime = zapcore.RFC3339NanoTimeEncoder
+	logger, err := zapConfig.Build()
 	defer logger.Sync()
 	if err != nil {
 		panic(err)
