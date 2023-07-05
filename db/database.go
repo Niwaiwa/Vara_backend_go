@@ -6,8 +6,11 @@ import (
 	"myapp/configs"
 	"net/url"
 	"strings"
+	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	pgxuuid "github.com/vgarvardt/pgx-google-uuid/v5"
 	"go.uber.org/zap"
 )
 
@@ -30,8 +33,21 @@ func DbConnect(ctx context.Context, logger *zap.Logger, config *configs.Config) 
 		parsedURL.RawQuery = query.Encode()
 	}
 
+	dbconfig, err := pgxpool.ParseConfig(parsedURL.String())
+	if err != nil {
+		logger.Fatal("Bad database connection URL", zap.Error(err))
+	}
+	dbconfig.MaxConnLifetime = time.Duration(config.DBConnMaxLifetimeMs) * time.Millisecond
+	dbconfig.MaxConns = config.DBMaxOpenConns
+	dbconfig.MinConns = config.DBMaxIdleConns
+	dbconfig.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+		pgxuuid.Register(conn.TypeMap())
+		return nil
+	}
+
 	logger.Debug("Complete database connection URL", zap.String("raw_url", parsedURL.String()))
-	dbPool, err := pgxpool.New(context.Background(), parsedURL.String())
+	// dbPool, err := pgxpool.New(context.Background(), parsedURL.String())
+	dbPool, err := pgxpool.NewWithConfig(context.Background(), dbconfig)
 	if err != nil {
 		logger.Fatal("Error connecting to database", zap.Error(err))
 	}

@@ -8,14 +8,16 @@ import (
 
 // struct to map env values
 type Config struct {
-	Debug                bool   `mapstructure:"DEBUG"`
-	ServerPort           string `mapstructure:"SERVER_PORT"`
-	SecretKey            string `mapstructure:"SECRET_KEY"`
-	DBURL                string `mapstructure:"DB_URL"`
-	DBConnMaxLifetimeMs  int    `mapstructure:"DB_CONN_MAX_LIFETIME_MS"`
-	DBMaxOpenConns       int    `mapstructure:"DB_MAX_OPEN_CONNS"`
-	DBMaxIdleConns       int    `mapstructure:"DB_MAX_IDLE_CONNS"`
-	DBDnsScanIntervalSec int    `mapstructure:"DB_DNS_SCAN_INTERVAL_SEC"`
+	Debug                  bool   `mapstructure:"DEBUG"`
+	ServerPort             string `mapstructure:"SERVER_PORT"`
+	SecretKey              string `mapstructure:"SECRET_KEY"`
+	DBURL                  string `mapstructure:"DB_URL"`
+	DBConnMaxLifetimeMs    int32  `mapstructure:"DB_CONN_MAX_LIFETIME_MS"`
+	DBMaxOpenConns         int32  `mapstructure:"DB_MAX_OPEN_CONNS"`
+	DBMaxIdleConns         int32  `mapstructure:"DB_MAX_IDLE_CONNS"`
+	DBDnsScanIntervalSec   int32  `mapstructure:"DB_DNS_SCAN_INTERVAL_SEC"`
+	AccessTokenExpiryHour  int    `mapstructure:"ACCESS_TOKEN_EXPIRE_HOURS"`
+	RefreshTokenExpiryHour int    `mapstructure:"REFRESH_TOKEN_EXPIRE_HOURS"`
 }
 
 // We will call this in main.go to load the env variables and initialize the config variable

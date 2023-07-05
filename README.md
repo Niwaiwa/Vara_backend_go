@@ -1,4 +1,5 @@
 # Vara_backend_go
+
  A video site demo with go.
 
 ## todo list
@@ -11,6 +12,16 @@
 * [x] Migration
 * [ ] User
 * [ ] JWT
+
+## packages
+
+* github.com/labstack/echo/v4
+* github.com/labstack/echo-jwt/v4
+* github.com/jackc/pgx/v5/pgxpool
+* github.com/vgarvardt/pgx-google-uuid/v5
+* github.com/google/uuid
+* github.com/spf13/viper
+* go.uber.org/zap
 
 ## migrate
 
@@ -33,4 +44,17 @@ Commands:
     create NAME [sql|go] Creates new migration file with the current timestamp
     fix                  Apply sequential ordering to migrations
     validate             Check migration files without running them
+```
+
+### seed
+
+apply all migrations 
+
+```bash
+goose -dir ./seed -no-versioning postgres "user=postgres password=password dbname=vara sslmode=disable" up
+```
+
+apply all down migrations (same as down-to 0)
+```bash
+goose -dir ./seed -no-versioning postgres "user=postgres password=password dbname=vara sslmode=disable" reset
 ```
