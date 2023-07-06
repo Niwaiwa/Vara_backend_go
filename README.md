@@ -10,8 +10,8 @@
 * [x] Config
 * [x] Database
 * [x] Migration
-* [ ] User
-* [ ] JWT
+* [x] User
+* [x] JWT
 
 ## packages
 
@@ -22,6 +22,7 @@
 * github.com/google/uuid
 * github.com/spf13/viper
 * go.uber.org/zap
+* golang.org/x/crypto
 
 ## migrate
 
