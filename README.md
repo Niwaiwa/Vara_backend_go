@@ -12,6 +12,9 @@
 * [x] Migration
 * [x] User
 * [x] JWT
+* [ ] Video
+* [ ] Image
+* [ ] Forum
 
 ## packages
 
